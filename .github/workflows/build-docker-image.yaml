@@ -2,6 +2,8 @@ name: Build and Push Image for Folder2
 
 on:
   push:
+    branches:
+    - first-docker-image
     paths:
       - devcontainer/go-grpc/Dockerfile'
 
