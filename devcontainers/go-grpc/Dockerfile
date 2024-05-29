@@ -27,3 +27,11 @@ VOLUME [ "/var/lib/docker" ]
 
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+
+
+RUN apt-get update && apt-get install -y \
+    apt-utils \
+    sudo \
+    curl \
+    lsb-release \
+    && apt-get clean    
