@@ -5,7 +5,7 @@ on:
     branches:
     - first-docker-image
     paths:
-      - devcontainers/go-grpc/Dockerfile'
+      - devcontainers/go-grpc/Dockerfile
 
 jobs:
   build:
