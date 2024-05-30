@@ -44,7 +44,7 @@ jobs:
         run: |
           TAG=${{ env.tag || env.commit_hash }}
           IMAGE=ghcr.io/${{ github.repository }}/$IMAGE_NAME:$TAG
-          cd devcontainer/go-grpc
+          cd devcontainers/go-grpc
           docker build -t $IMAGE .
           docker push $IMAGE
 
