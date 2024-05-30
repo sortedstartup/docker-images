@@ -3,7 +3,7 @@ name: Build and Push Image for Folder2
 on:
   push:
     branches:
-    - first-docker-image
+    - main
     paths:
       - devcontainers/go-grpc/Dockerfile
 
@@ -14,7 +14,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      
+
     defaults:
       run:
         shell: bash
