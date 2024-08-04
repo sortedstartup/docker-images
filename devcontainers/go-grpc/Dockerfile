@@ -31,9 +31,17 @@ RUN groupadd --gid $USER_GID $USERNAME \
 RUN apt-get update \
     # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
     && apt-get install -y sudo \
+                          net-tools \
+                          jq \
+			  vim nano\
+                          tmux screen \
+                          tree htop \
+                          pgcli \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME  \
     && apt-get install -y wget curl git jq python3 python3-pip unzip zip inetutils-ping sqlite3 libsqlite3-dev make postgresql-client \
+    && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \ 
+    && mv ./kubectl /usr/local/bin \
     && apt clean
 
 USER ${USERNAME}
@@ -41,9 +49,9 @@ USER ${USERNAME}
 RUN mkdir ${USER_SW_HOME}
 
 FROM base as dev-go-npm-grpc
-# Install Go 1.22.3
+# Install Go 1.22.5
 
-RUN wget https://go.dev/dl/go1.22.3.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
+RUN wget https://go.dev/dl/go1.22.5.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
@@ -71,9 +79,12 @@ RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v26.1/pro
     rm ${USER_SW_HOME}/protoc.zip
 
 # Install grpc tools , this can be moved to dev container startup steps also as we dont knw what is the GOPATH before hand, we kind of know
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.33.0 && \
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2 && \
     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0 && \
     go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest && \
+    # For debugging go programs
+    go install -v github.com/go-delve/delve/cmd/dlv@latest && \
+
     # Without this there is ~400 MB in ~/.cache/go-build
     go clean -cache && \
     go clean -modcache
@@ -83,13 +94,15 @@ RUN . "$NVM_DIR/nvm.sh" && npm install -g protoc-gen-ts
 
 # ----- add git mod cache, this speeds up the first go run and build ----- 
 # but it depennds on the project because every project has different dependencies and versions
+# This can doen in the post create step of dev containers
 
 # -----
 
 FROM dev-go-npm-grpc as dev-go-npm-grpc-java-android
 # ------- Android SDK --------
 # TODO: see if we can use latest java 
-RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 17.0.11-oracle"
+# Installing Java 
+RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 21.0.2-open"
 
 RUN mkdir /home/dev/sw/android_cmdtools && \
     cd /home/dev/sw/android_cmdtools && \
