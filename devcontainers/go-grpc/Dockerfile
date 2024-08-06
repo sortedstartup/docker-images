@@ -32,7 +32,7 @@ RUN apt-get update \
     # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
     && apt-get install -y sudo \
                           net-tools \
-                          jq \
+                          jq graphviz\
 			  vim nano\
                           tmux screen \
                           tree htop \
@@ -65,7 +65,9 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | b
     #TODO: install specific version
     nvm install --lts && \
     nvm use --lts && \
-    echo "export PATH=\$PATH:/usr/local/nvm/versions/node/$(nvm version --lts)/bin">> ${USER_HOME}/profile
+    NODE_DIR=$(dirname $(dirname $(nvm which current))) && \
+    ln -s $NODE_DIR /home/dev/sw/node-current && \
+    echo "export PATH=\$PATH:/usr/local/nvm/versions/node/$(node --version)/bin">> ${USER_HOME}/profile
 
 # Install SDKMAN
 RUN curl -s "https://get.sdkman.io" | bash
