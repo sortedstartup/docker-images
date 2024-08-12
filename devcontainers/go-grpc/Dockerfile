@@ -28,6 +28,9 @@ VOLUME [ "/var/lib/docker" ]
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
+# Without this the tzdata will ask for input and hand the docker image build forever 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update \
 
     # Only for installing gh tools from github
