@@ -46,7 +46,7 @@ RUN apt-get update \
                           tmux screen \
                           tree htop \
                           pgcli \
-                          ruby ruby-devel \
+                          ruby ruby-dev \
                           gh \
 
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
