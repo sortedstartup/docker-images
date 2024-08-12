@@ -29,19 +29,32 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
 RUN apt-get update \
+
+    # Only for installing gh tools from github
+    && sudo mkdir -p -m 755 /etc/apt/keyrings \
+    && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+    && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && sudo apt update \
+
     # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
-    && apt-get install -y sudo \
+    && apt-get install -y sudo wget \
                           net-tools \
                           jq graphviz\
-			  vim nano\
+			              vim nano\
                           tmux screen \
                           tree htop \
                           pgcli \
+                          ruby ruby-devel \
+                          gh \
+
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME  \
     && apt-get install -y wget curl git jq python3 python3-pip unzip zip inetutils-ping sqlite3 libsqlite3-dev make postgresql-client \
     && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \ 
     && mv ./kubectl /usr/local/bin \
+    && sudo gem install fastlane \
+
     && apt clean
 
 USER ${USERNAME}
