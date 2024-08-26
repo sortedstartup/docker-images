@@ -45,12 +45,13 @@ RUN apt-get update \
     && apt-get install -y sudo wget \
                           net-tools \
                           jq graphviz\
-			              vim nano\
+			  vim nano\
                           tmux screen \
                           tree htop \
                           pgcli \
                           ruby ruby-dev \
                           gh \
+                          neovim \
 
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME  \
@@ -61,14 +62,22 @@ RUN apt-get update \
 
     && apt clean
 
+RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.21.2/stripe_1.21.2_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
+
 USER ${USERNAME}
 
 RUN mkdir ${USER_SW_HOME}
 
-FROM base as dev-go-npm-grpc
-# Install Go 1.22.5
+RUN git clone https://github.com/LazyVim/starter ~/.config/nvim
+RUN curl -L https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/FiraCode.zip -o /tmp/FiraCode.zip
+RUN mkdir -p ${USER_SW_HOME}/.local/share/fonts
+RUN unzip /tmp/FiraCode.zip -d ${USER_SW_HOME}/.local/share/fonts
+RUN fc-cache -fv
 
-RUN wget https://go.dev/dl/go1.22.5.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
+FROM base as dev-go-npm-grpc
+# Install Go 1.23.0
+
+RUN wget https://go.dev/dl/go1.23.0.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
@@ -136,3 +145,4 @@ RUN PATH=$PATH:${USER_SW_HOME}/android_cmdtools/cmdline-tools/bin:/home/dev/.sdk
     JAVA_HOME=/home/dev/.sdkman/candidates/java/current && \
     yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --install "platform-tools" "platforms;android-34" "build-tools;34.0.0" && \
     yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --licenses
+
