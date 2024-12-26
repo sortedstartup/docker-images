@@ -131,7 +131,7 @@ FROM dev-go-npm-grpc as dev-go-npm-grpc-java-android
 # ------- Android SDK --------
 # TODO: see if we can use latest java 
 # Installing Java 
-RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 23-open"
+RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 21.0.2-open"
 
 RUN mkdir /home/dev/sw/android_cmdtools && \
     cd /home/dev/sw/android_cmdtools && \
