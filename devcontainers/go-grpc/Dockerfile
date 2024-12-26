@@ -62,7 +62,7 @@ RUN apt-get update \
 
     && apt clean
 
-RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.21.2/stripe_1.21.2_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
+RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.23.3/stripe_1.23.3_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
 
 USER ${USERNAME}
 
@@ -75,9 +75,8 @@ RUN unzip /tmp/FiraCode.zip -d ${USER_SW_HOME}/.local/share/fonts
 RUN fc-cache -fv
 
 FROM base as dev-go-npm-grpc
-# Install Go 1.23.0
-
-RUN wget https://go.dev/dl/go1.23.0.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
+# Install Go 1.23.4
+RUN wget https://go.dev/dl/go1.23.4.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
@@ -86,7 +85,7 @@ ENV PATH="${PATH}:${USER_SW_HOME}/bin:${USER_SW_HOME}/go/bin:${USER_HOME}/go/bin
 # Install Node.js using NVM
 ENV NVM_DIR=${USER_SW_HOME}/nvm
 RUN mkdir $NVM_DIR
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash && \
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && \
     . "$NVM_DIR/nvm.sh" && \
     #TODO: install specific version
     nvm install --lts && \
@@ -102,17 +101,19 @@ RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh && sdk version"
 
 # ------- GRPC Tools --------
 # Install protoc
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v26.1/protoc-26.1-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v29.2/protoc-29.2-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
     unzip ${USER_SW_HOME}/protoc.zip -d ${USER_SW_HOME} && \
     rm ${USER_SW_HOME}/protoc.zip
 
 # Install grpc tools , this can be moved to dev container startup steps also as we dont knw what is the GOPATH before hand, we kind of know
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2 && \
-    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0 && \
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.1 && \
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1 && \
     go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest && \
     # For debugging go programs
     go install -v github.com/go-delve/delve/cmd/dlv@latest && \
-
+    go install golang.org/x/tools/gopls@latest && \
+    go install golang.org/x/lint/golint@latest && \
+    go install honnef.co/go/tools/cmd/staticcheck@latest && \
     # Without this there is ~400 MB in ~/.cache/go-build
     go clean -cache && \
     go clean -modcache
@@ -130,7 +131,7 @@ FROM dev-go-npm-grpc as dev-go-npm-grpc-java-android
 # ------- Android SDK --------
 # TODO: see if we can use latest java 
 # Installing Java 
-RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 21.0.2-open"
+RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 23-open"
 
 RUN mkdir /home/dev/sw/android_cmdtools && \
     cd /home/dev/sw/android_cmdtools && \
@@ -144,5 +145,6 @@ ENV ANDROID_HOME=/home/dev/sw/androidsdk
 RUN PATH=$PATH:${USER_SW_HOME}/android_cmdtools/cmdline-tools/bin:/home/dev/.sdkman/candidates/java/current/bin && \
     JAVA_HOME=/home/dev/.sdkman/candidates/java/current && \
     yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --install "platform-tools" "platforms;android-34" "build-tools;34.0.0" && \
-    yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --licenses
+    yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --licenses && \
+    echo "export PATH=\$PATH:${ANDROID_HOME}/platform-tools">> ${USER_HOME}/profile
 
