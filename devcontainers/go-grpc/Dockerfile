@@ -148,3 +148,4 @@ RUN PATH=$PATH:${USER_SW_HOME}/android_cmdtools/cmdline-tools/bin:/home/dev/.sdk
     yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --licenses && \
     echo "export PATH=\$PATH:${ANDROID_HOME}/platform-tools">> ${USER_HOME}/profile
 
+ENV PATH="${PATH}:${ANDROID_HOME}/platform-tools"
