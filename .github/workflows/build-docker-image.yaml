@@ -61,3 +61,15 @@ jobs:
           docker build -t $IMAGE .
           docker push $IMAGE
 
+      - name: Set image name
+        run: echo "IMAGE_NAME=dev-go-npm-grpc" >> $GITHUB_ENV
+
+      - name: Build and Push Docker image
+        run: |
+          TAG=${{ env.tag || env.commit_hash }}
+          IMAGE=ghcr.io/${{ github.repository }}/$IMAGE_NAME:$TAG
+          cd devcontainers/go-grpc
+          docker build . --target dev-go-npm-grpc -t $IMAGE .
+          docker push $IMAGE
+
+ 
