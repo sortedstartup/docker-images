@@ -10,7 +10,7 @@
 # docker build . --target dev-go-npm-grpc-java-android -t sortedstartup/dev/dev-go-npm-grpc-java-android:0.1
 
 # Use Ubuntu as the base image
-FROM ubuntu:jammy as base
+FROM ubuntu:jammy AS base
 
 # uid=1000 and gid=1000, because github codespaces rely on this
 ARG USERNAME=dev
@@ -31,18 +31,18 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # Without this the tzdata will ask for input and hand the docker image build forever 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update \
-
+RUN apt update \
     # Only for installing gh tools from github
     && apt install -y wget \
     && mkdir -p -m 755 /etc/apt/keyrings \
     && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg |  tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
     && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-    && apt update \
+    && apt clean
 
-    # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
-    && apt-get install -y sudo wget \
+# [Optional] Add sudo support. Omit if you don't need to install software after connecting.
+RUN  apt update \
+     && apt install -y sudo wget \
                           net-tools \
                           jq graphviz\
 			              vim nano\
@@ -52,16 +52,20 @@ RUN apt-get update \
                           ruby ruby-dev \
                           gh \
                           neovim \
+    && apt clean
 
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME  \
-    && apt-get install -y wget curl git jq python3 python3-pip unzip zip inetutils-ping sqlite3 libsqlite3-dev make postgresql-client \
+    && apt update \
+    && apt install -y wget curl git jq python3 python3-pip unzip zip inetutils-ping sqlite3 libsqlite3-dev make postgresql-client \
     && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \ 
     && mv ./kubectl /usr/local/bin \
     && sudo gem install fastlane \
-
     && apt clean
 
+RUN apt update \
+    && apt install -y fzf telnet lsof tree bc traceroute dnsutils netcat nmap tcpdump tmux \
+    && apt clean
 RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.27.0/stripe_1.27.0_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
 
 USER ${USERNAME}
@@ -74,7 +78,7 @@ RUN mkdir -p ${USER_SW_HOME}/.local/share/fonts
 RUN unzip /tmp/FiraCode.zip -d ${USER_SW_HOME}/.local/share/fonts
 RUN fc-cache -fv
 
-FROM base as dev-go-npm-grpc
+FROM base AS dev-go-npm-grpc
 # Install Go 1.24.3
 RUN wget https://go.dev/dl/go1.24.3.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
@@ -127,7 +131,7 @@ RUN . "$NVM_DIR/nvm.sh" && npm install -g protoc-gen-ts
 
 # -----
 
-FROM dev-go-npm-grpc as dev-go-npm-grpc-java-android
+FROM dev-go-npm-grpc AS dev-go-npm-grpc-java-android
 # ------- Android SDK --------
 # TODO: see if we can use latest java 
 # Installing Java 
