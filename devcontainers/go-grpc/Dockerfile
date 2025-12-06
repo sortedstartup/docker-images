@@ -62,7 +62,7 @@ RUN apt-get update \
 
     && apt clean
 
-RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.27.0/stripe_1.27.0_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
+RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.33.0/stripe_1.33.0_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
 
 USER ${USERNAME}
 
@@ -75,8 +75,8 @@ RUN unzip /tmp/FiraCode.zip -d ${USER_SW_HOME}/.local/share/fonts
 RUN fc-cache -fv
 
 FROM base as dev-go-npm-grpc
-# Install Go 1.24.3
-RUN wget https://go.dev/dl/go1.24.3.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
+# Install Go 1.25.5
+RUN wget https://go.dev/dl/go1.25.5.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
@@ -101,7 +101,7 @@ RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh && sdk version"
 
 # ------- GRPC Tools --------
 # Install protoc
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v31.0/protoc-31.0-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v33.2/protoc-33.2-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
     unzip ${USER_SW_HOME}/protoc.zip -d ${USER_SW_HOME} && \
     rm ${USER_SW_HOME}/protoc.zip
 
