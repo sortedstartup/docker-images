@@ -11,6 +11,7 @@ RUN apt-get update && \
     git \
     zip \
     unzip \
+    build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
