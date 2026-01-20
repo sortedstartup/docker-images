@@ -62,7 +62,7 @@ RUN apt-get update \
 
     && apt clean
 
-RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.33.0/stripe_1.33.0_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
+RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.34.0/stripe_1.34.0_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
 
 USER ${USERNAME}
 
@@ -75,8 +75,8 @@ RUN unzip /tmp/FiraCode.zip -d ${USER_SW_HOME}/.local/share/fonts
 RUN fc-cache -fv
 
 FROM base as dev-go-npm-grpc
-# Install Go 1.25.5
-RUN wget https://go.dev/dl/go1.25.5.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
+# Install Go 1.25.6
+RUN wget https://go.dev/dl/go1.25.6.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
@@ -101,13 +101,19 @@ RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh && sdk version"
 
 # ------- GRPC Tools --------
 # Install protoc
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v33.2/protoc-33.2-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v33.4/protoc-33.4-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
     unzip ${USER_SW_HOME}/protoc.zip -d ${USER_SW_HOME} && \
     rm ${USER_SW_HOME}/protoc.zip
 
+RUN PREFIX="/usr/local" && \
+    VERSION="1.64.0" && \
+    curl -sSL \
+    "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m).tar.gz" | \
+    tar -xvzf - -C "${PREFIX}" --strip-components 1
+
 # Install grpc tools , this can be moved to dev container startup steps also as we dont knw what is the GOPATH before hand, we kind of know
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6 && \
-    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1 && \
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11 && \
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.0 && \
     go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest && \
     # For debugging go programs
     go install -v github.com/go-delve/delve/cmd/dlv@latest && \
@@ -131,7 +137,7 @@ FROM dev-go-npm-grpc as dev-go-npm-grpc-java-android
 # ------- Android SDK --------
 # TODO: see if we can use latest java 
 # Installing Java 
-RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 21.0.2-open"
+RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 25.0.1-open"
 
 RUN mkdir /home/dev/sw/android_cmdtools && \
     cd /home/dev/sw/android_cmdtools && \
