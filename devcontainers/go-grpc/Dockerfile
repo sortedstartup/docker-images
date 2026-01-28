@@ -105,11 +105,15 @@ RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v33.4/pro
     unzip ${USER_SW_HOME}/protoc.zip -d ${USER_SW_HOME} && \
     rm ${USER_SW_HOME}/protoc.zip
 
+USER root
+
 RUN PREFIX="/usr/local" && \
     VERSION="1.64.0" && \
     curl -sSL \
     "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m).tar.gz" | \
     tar -xvzf - -C "${PREFIX}" --strip-components 1
+
+USER ${USERNAME}
 
 # Install grpc tools , this can be moved to dev container startup steps also as we dont knw what is the GOPATH before hand, we kind of know
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11 && \
