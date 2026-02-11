@@ -18,7 +18,7 @@ RUN apt-get update && \
 # ARG TARGETARCH is automatically populated by Docker Buildx (e.g., "amd64" or "arm64")
 ARG TARGETARCH
 # Set your desired Go version here
-ARG GO_VERSION=1.25.5
+ARG GO_VERSION=1.26.0
 
 # Dynamically download the correct Go binary based on the target architecture
 RUN echo "Building for architecture: ${TARGETARCH}" && \

@@ -75,8 +75,8 @@ RUN unzip /tmp/FiraCode.zip -d ${USER_SW_HOME}/.local/share/fonts
 RUN fc-cache -fv
 
 FROM base as dev-go-npm-grpc
-# Install Go 1.25.6
-RUN wget https://go.dev/dl/go1.25.6.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
+# Install Go 1.26.0
+RUN wget https://go.dev/dl/go1.26.0.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
