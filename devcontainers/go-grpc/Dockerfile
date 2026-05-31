@@ -154,7 +154,7 @@ ENV ANDROID_HOME=/home/dev/sw/androidsdk
 # TODO: init sdk man and remove java from path and JAVA_HOME
 RUN PATH=$PATH:${USER_SW_HOME}/android_cmdtools/cmdline-tools/bin:/home/dev/.sdkman/candidates/java/current/bin && \
     JAVA_HOME=/home/dev/.sdkman/candidates/java/current && \
-    yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --install "platform-tools" "platforms;android-35" "build-tools;35.0.1" && \
+    yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" && \
     yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --licenses && \
     echo "export PATH=\$PATH:${ANDROID_HOME}/platform-tools">> ${USER_HOME}/profile
 
