@@ -62,7 +62,7 @@ RUN apt-get update \
 
     && apt clean
 
-RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.42.0/stripe_1.42.0_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
+RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.42.1/stripe_1.42.1_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
 
 USER ${USERNAME}
 
