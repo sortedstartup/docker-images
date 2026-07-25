@@ -1,5 +1,5 @@
 # Start with the official Airflow image
-FROM apache/airflow:3.0.2
+FROM apache/airflow:3.3.0
 
 # Switch to root to install system dependencies
 USER root
@@ -7,6 +7,7 @@ USER root
 # Install dependencies required to download and use Go
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    iputils-ping \
     curl \
     git \
     zip \
