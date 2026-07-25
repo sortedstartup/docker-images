@@ -44,6 +44,7 @@ RUN apt-get update \
     # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
     && apt-get install -y sudo wget \
                           net-tools \
+						  iputils-ping \
                           jq graphviz\
 			              vim nano\
                           tmux screen \
@@ -76,7 +77,7 @@ RUN fc-cache -fv
 
 FROM base as dev-go-npm-grpc
 # Install Go 1.26.3
-RUN wget https://go.dev/dl/go1.26.3.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
+RUN wget https://go.dev/dl/go1.26.5.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
@@ -85,7 +86,7 @@ ENV PATH="${PATH}:${USER_SW_HOME}/bin:${USER_SW_HOME}/go/bin:${USER_HOME}/go/bin
 # Install Node.js using NVM
 ENV NVM_DIR=${USER_SW_HOME}/nvm
 RUN mkdir $NVM_DIR
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash && \
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash && \
     . "$NVM_DIR/nvm.sh" && \
     #TODO: install specific version
     nvm install --lts && \
@@ -101,14 +102,14 @@ RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh && sdk version"
 
 # ------- GRPC Tools --------
 # Install protoc
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v35.0/protoc-35.0-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
     unzip ${USER_SW_HOME}/protoc.zip -d ${USER_SW_HOME} && \
     rm ${USER_SW_HOME}/protoc.zip
 
 USER root
 
 RUN PREFIX="/usr/local" && \
-    VERSION="1.64.0" && \
+    VERSION="1.72.0" && \
     curl -sSL \
     "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m).tar.gz" | \
     tar -xvzf - -C "${PREFIX}" --strip-components 1
@@ -145,9 +146,9 @@ RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 21.0
 
 RUN mkdir /home/dev/sw/android_cmdtools && \
     cd /home/dev/sw/android_cmdtools && \
-    wget https://dl.google.com/android/repository/commandlinetools-linux-14742923_latest.zip && \
-    unzip commandlinetools-linux-14742923_latest.zip && \
-    rm commandlinetools-linux-14742923_latest.zip
+    wget https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip && \
+    unzip commandlinetools-linux-15859902_latest.zip && \
+    rm commandlinetools-linux-15859902_latest.zip
 
 ENV ANDROID_HOME=/home/dev/sw/androidsdk
 
