@@ -81,7 +81,7 @@ RUN wget https://go.dev/dl/go1.27.2.linux-amd64.tar.gz -O - | tar -xz -C ${USER_
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
-ENV PATH="${PATH}:${USER_SW_HOME}/bin:${USER_SW_HOME}/go/bin:${USER_HOME}/go/bin"
+ENV PATH="${PATH}:${USER_SW_HOME}/bin:${USER_SW_HOME}/go/bin:${USER_HOME}/go/bin:${USER_SW_HOME}/node-current/bin"
 
 # Install Node.js using NVM
 ENV NVM_DIR=${USER_SW_HOME}/nvm
