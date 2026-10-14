@@ -147,6 +147,10 @@ RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh && \
     sdk install java 26.0.2-tem && \
     sdk default java 26.0.2-tem"
 
+# Make Java discoverable by Android Gradle Plugin and other build tools.
+ENV JAVA_HOME=/home/dev/.sdkman/candidates/java/current
+ENV PATH="${JAVA_HOME}/bin:${PATH}:${USER_SW_HOME}/android_cmdtools/cmdline-tools/bin"
+
 RUN mkdir /home/dev/sw/android_cmdtools && \
     cd /home/dev/sw/android_cmdtools && \
     wget https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip && \

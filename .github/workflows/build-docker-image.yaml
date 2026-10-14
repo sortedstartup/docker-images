@@ -54,23 +54,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push Docker image
+      - name: Build Android Docker image
         run: |
           TAG=${{ env.tag || env.commit_hash }}
           IMAGE=ghcr.io/${{ github.repository }}/$IMAGE_NAME:$TAG
           cd devcontainers/go-grpc
           docker build -t $IMAGE .
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE/devcontainers/go-grpc/test-image.sh:/tmp/test-image.sh:ro" \
+            "$IMAGE" bash /tmp/test-image.sh android
           if [[ $GITHUB_EVENT_NAME == push ]]; then docker push $IMAGE; fi
 
       - name: Set image name
         run: echo "IMAGE_NAME=dev-go-npm-grpc" >> $GITHUB_ENV
 
-      - name: Build and Push Docker image
+      - name: Build core Docker image
         run: |
           TAG=${{ env.tag || env.commit_hash }}
           IMAGE=ghcr.io/${{ github.repository }}/$IMAGE_NAME:$TAG
           cd devcontainers/go-grpc
           docker build --target dev-go-npm-grpc -t $IMAGE .
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE/devcontainers/go-grpc/test-image.sh:/tmp/test-image.sh:ro" \
+            "$IMAGE" bash /tmp/test-image.sh core
           if [[ $GITHUB_EVENT_NAME == push ]]; then docker push $IMAGE; fi
 
  
