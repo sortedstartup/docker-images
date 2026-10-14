@@ -140,15 +140,15 @@ RUN . "$NVM_DIR/nvm.sh" && npm install -g protoc-gen-ts
 
 FROM dev-go-npm-grpc as dev-go-npm-grpc-java-android
 # ------- Android SDK --------
-# TODO: see if we can use latest java 
-# Installing Java 
+# Install only the stable Java 21 OpenJDK release listed by SDKMAN.
 RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh && \
-    sdk install java 21.0.12+1.1-tem && \
-    sdk install java 26.0.2-tem && \
-    sdk default java 26.0.2-tem"
+    sdk install java 21.0.2-open && \
+    sdk default java 21.0.2-open"
 
-# Make Java discoverable by Android Gradle Plugin and other build tools.
-ENV JAVA_HOME=/home/dev/.sdkman/candidates/java/current
+# Gradle uses SDKMAN_CANDIDATES_DIR when discovering JDKs, including as root.
+ENV SDKMAN_DIR=${USER_HOME}/.sdkman
+ENV SDKMAN_CANDIDATES_DIR=${SDKMAN_DIR}/candidates
+ENV JAVA_HOME=${SDKMAN_CANDIDATES_DIR}/java/current
 ENV PATH="${JAVA_HOME}/bin:${PATH}:${USER_SW_HOME}/android_cmdtools/cmdline-tools/bin"
 
 RUN mkdir /home/dev/sw/android_cmdtools && \
@@ -159,10 +159,7 @@ RUN mkdir /home/dev/sw/android_cmdtools && \
 
 ENV ANDROID_HOME=/home/dev/sw/androidsdk
 
-# TODO: init sdk man and remove java from path and JAVA_HOME
-RUN PATH=$PATH:${USER_SW_HOME}/android_cmdtools/cmdline-tools/bin:/home/dev/.sdkman/candidates/java/current/bin && \
-    JAVA_HOME=/home/dev/.sdkman/candidates/java/current && \
-    yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --install "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" && \
+RUN yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --install "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" && \
     yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --licenses && \
     echo "export PATH=\$PATH:${ANDROID_HOME}/platform-tools">> ${USER_HOME}/profile
 

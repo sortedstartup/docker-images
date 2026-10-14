@@ -22,7 +22,7 @@ expect_contains() {
 run_test() {
   local label=$1
   shift
-  if "$@"; then
+  if ( "$@" ); then
     ((passes += 1))
     echo "PASS: $label"
   else
@@ -40,7 +40,7 @@ test_go_runtime() {
   require_command go || return 1
   local tmpdir
   tmpdir=$(mktemp -d) || return 1
-  trap 'rm -rf "$tmpdir"' EXIT
+  trap "rm -rf -- '$tmpdir'" EXIT
   cat > "$tmpdir/main.go" <<'GO'
 package main
 
@@ -87,7 +87,7 @@ test_protoc_go_plugins() {
   done
   local tmpdir
   tmpdir=$(mktemp -d) || return 1
-  trap 'rm -rf "$tmpdir"' EXIT
+  trap "rm -rf -- '$tmpdir'" EXIT
   cat > "$tmpdir/smoke.proto" <<'PROTO'
 syntax = "proto3";
 package smoke;
@@ -129,6 +129,7 @@ test_staticcheck() {
 
 test_java_home() {
   [[ -n "${JAVA_HOME:-}" ]] || fail 'JAVA_HOME is unset' || return 1
+  [[ "$(readlink -f "$JAVA_HOME")" == '/home/dev/.sdkman/candidates/java/21.0.2-open' ]] || fail "JAVA_HOME does not select Java 21 OpenJDK: $JAVA_HOME" || return 1
   [[ -x "$JAVA_HOME/bin/java" ]] || fail "JAVA_HOME does not contain java: ${JAVA_HOME}" || return 1
   local java_path java_home_path
   java_path=$(readlink -f "$(command -v java)" 2>/dev/null) || fail 'java is not on PATH' || return 1
@@ -138,12 +139,21 @@ test_java_home() {
 
 test_java_runtime_version() {
   require_command java || return 1
-  expect_contains "$(java -version 2>&1)" '26.0.2' 'Java runtime version'
+  expect_contains "$(java -version 2>&1)" '21.0.2' 'Java runtime version'
+}
+
+test_sdkman_discovery() {
+  [[ "${SDKMAN_CANDIDATES_DIR:-}" == '/home/dev/.sdkman/candidates' ]] || fail 'Gradle cannot discover the shared SDKMAN candidates directory' || return 1
+  [[ "$(readlink -f "$SDKMAN_CANDIDATES_DIR/java/current")" == "$SDKMAN_CANDIDATES_DIR/java/21.0.2-open" ]] || fail 'SDKMAN current does not select Java 21 OpenJDK' || return 1
+  [[ -x "$SDKMAN_CANDIDATES_DIR/java/21.0.2-open/bin/javac" ]] || fail 'Java 21 compiler is missing' || return 1
+  local installed
+  installed=$(find "$SDKMAN_CANDIDATES_DIR/java" -mindepth 1 -maxdepth 1 -type d -printf '%f\n') || return 1
+  [[ "$installed" == '21.0.2-open' ]] || fail "Expected only Java 21 OpenJDK, found: $installed"
 }
 
 test_javac_version() {
   require_command javac || return 1
-  expect_contains "$(javac -version 2>&1)" '26.0.2' 'Java compiler version'
+  expect_contains "$(javac -version 2>&1)" '21.0.2' 'Java compiler version'
 }
 
 test_java_compile_run() {
@@ -152,7 +162,7 @@ test_java_compile_run() {
   done
   local tmpdir
   tmpdir=$(mktemp -d) || return 1
-  trap 'rm -rf "$tmpdir"' EXIT
+  trap "rm -rf -- '$tmpdir'" EXIT
   cat > "$tmpdir/JavaSmokeTest.java" <<'JAVA'
 class JavaSmokeTest {
   public static void main(String[] args) {
@@ -202,6 +212,7 @@ test_d8() {
   expect_contains "$("$d8" --version 2>&1)" 'D8' 'D8 launches'
 }
 
+if [[ "$mode" != java ]]; then
 run_test 'Go 1.27.2' test_go_version
 run_test 'Go compile and run' test_go_runtime
 run_test 'Node.js version' test_node_version
@@ -215,19 +226,24 @@ run_test 'sqlc launches' test_sqlc
 run_test 'Delve launches' test_delve
 run_test 'gopls launches' test_gopls
 run_test 'staticcheck launches' test_staticcheck
+fi
+
+if [[ "$mode" == android || "$mode" == java ]]; then
+  run_test 'JAVA_HOME points to the active Java runtime' test_java_home
+  run_test 'Java runtime 21.0.2' test_java_runtime_version
+  run_test 'Java compiler 21.0.2' test_javac_version
+  run_test 'Shared SDKMAN discovery with only Java 21 OpenJDK installed' test_sdkman_discovery
+  run_test 'Java compile and run' test_java_compile_run
+fi
 
 if [[ "$mode" == android ]]; then
-  run_test 'JAVA_HOME points to the active Java runtime' test_java_home
-  run_test 'Java runtime 26.0.2' test_java_runtime_version
-  run_test 'Java compiler 26.0.2' test_javac_version
-  run_test 'Java compile and run' test_java_compile_run
   run_test 'Android API 37.0 platform installed' test_android_platform
   run_test 'Android Build Tools 37.0.0 installed' test_android_build_tools
   run_test 'Android sdkmanager launches' test_sdkmanager
   run_test 'Android platform-tools launch' test_adb
   run_test 'Android aapt2 launches' test_aapt2
   run_test 'Android D8 launches' test_d8
-elif [[ "$mode" != core ]]; then
+elif [[ "$mode" != core && "$mode" != java ]]; then
   echo "FAIL: unknown test mode: $mode" >&2
   ((failures += 1))
 fi

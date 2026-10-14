@@ -70,9 +70,17 @@ jobs:
         run: |
           TAG=${{ env.tag || env.commit_hash }}
           IMAGE=ghcr.io/${{ github.repository }}/dev-go-npm-grpc-java-android:$TAG
+          test_status=0
           docker run --rm \
             --volume "$GITHUB_WORKSPACE/devcontainers/go-grpc/test-image.sh:/tmp/test-image.sh:ro" \
-            "$IMAGE" bash /tmp/test-image.sh android
+            "$IMAGE" bash /tmp/test-image.sh android || test_status=1
+          # Reproduce consumers that run as root and explicitly use current/bin.
+          docker run --rm --user root --entrypoint /bin/bash \
+            --env HOME=/root \
+            --env PATH=/home/dev/.sdkman/candidates/java/current/bin:/home/dev/sw/node-current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/dev/sw/bin:/home/dev/sw/go/bin:/home/dev/go/bin \
+            --volume "$GITHUB_WORKSPACE/devcontainers/go-grpc/test-image.sh:/tmp/test-image.sh:ro" \
+            "$IMAGE" /tmp/test-image.sh java || test_status=1
+          exit "$test_status"
 
       - name: Set image name
         run: echo "IMAGE_NAME=dev-go-npm-grpc" >> $GITHUB_ENV
