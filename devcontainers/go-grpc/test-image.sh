@@ -177,7 +177,10 @@ test_android_build_tools() {
 
 test_sdkmanager() {
   require_command sdkmanager || return 1
-  expect_contains "$(sdkmanager --version 2>&1)" '.' 'Android sdkmanager launches'
+  [[ -n "${ANDROID_HOME:-}" ]] || fail 'ANDROID_HOME is unset' || return 1
+  local output
+  output=$(sdkmanager --list_installed --sdk_root="$ANDROID_HOME" 2>&1) || fail 'Android sdkmanager command failed' || return 1
+  [[ "$output" == *'platforms;android-37.0'* ]] || fail 'sdkmanager did not report Android platform 37.0'
 }
 
 test_adb() {
