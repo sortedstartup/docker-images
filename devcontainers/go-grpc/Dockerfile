@@ -63,7 +63,7 @@ RUN apt-get update \
 
     && apt clean
 
-RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.42.1/stripe_1.42.1_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
+RUN curl -L https://github.com/stripe/stripe-cli/releases/download/v1.53.1/stripe_1.53.1_linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin
 
 USER ${USERNAME}
 
@@ -76,8 +76,8 @@ RUN unzip /tmp/FiraCode.zip -d ${USER_SW_HOME}/.local/share/fonts
 RUN fc-cache -fv
 
 FROM base as dev-go-npm-grpc
-# Install Go 1.26.3
-RUN wget https://go.dev/dl/go1.26.5.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
+# Install Go 1.27.2
+RUN wget https://go.dev/dl/go1.27.2.linux-amd64.tar.gz -O - | tar -xz -C ${USER_SW_HOME} && \
 echo "export PATH=\$PATH:${USER_SW_HOME}/go/bin">> ${USER_HOME}/profile
 
 # Set environment variable for Go
@@ -102,7 +102,7 @@ RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh && sdk version"
 
 # ------- GRPC Tools --------
 # Install protoc
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v36.2/protoc-36.2-linux-x86_64.zip -O ${USER_SW_HOME}/protoc.zip && \
     unzip ${USER_SW_HOME}/protoc.zip -d ${USER_SW_HOME} && \
     rm ${USER_SW_HOME}/protoc.zip
 
@@ -142,7 +142,10 @@ FROM dev-go-npm-grpc as dev-go-npm-grpc-java-android
 # ------- Android SDK --------
 # TODO: see if we can use latest java 
 # Installing Java 
-RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh  && sdk install java 21.0.2-open"
+RUN bash -c "source ${HOME}/.sdkman/bin/sdkman-init.sh && \
+    sdk install java 21.0.12+1.1-tem && \
+    sdk install java 26.0.2-tem && \
+    sdk default java 26.0.2-tem"
 
 RUN mkdir /home/dev/sw/android_cmdtools && \
     cd /home/dev/sw/android_cmdtools && \
@@ -155,7 +158,7 @@ ENV ANDROID_HOME=/home/dev/sw/androidsdk
 # TODO: init sdk man and remove java from path and JAVA_HOME
 RUN PATH=$PATH:${USER_SW_HOME}/android_cmdtools/cmdline-tools/bin:/home/dev/.sdkman/candidates/java/current/bin && \
     JAVA_HOME=/home/dev/.sdkman/candidates/java/current && \
-    yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" && \
+    yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --install "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" && \
     yes|sdkmanager --sdk_root=/home/dev/sw/androidsdk/ --licenses && \
     echo "export PATH=\$PATH:${ANDROID_HOME}/platform-tools">> ${USER_HOME}/profile
 

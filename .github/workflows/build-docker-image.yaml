@@ -6,6 +6,7 @@ on:
       - '*'
     paths:
       - devcontainers/go-grpc/Dockerfile
+  workflow_dispatch:
 
 jobs:
   build:
@@ -59,7 +60,7 @@ jobs:
           IMAGE=ghcr.io/${{ github.repository }}/$IMAGE_NAME:$TAG
           cd devcontainers/go-grpc
           docker build -t $IMAGE .
-          docker push $IMAGE
+          if [[ $GITHUB_EVENT_NAME == push ]]; then docker push $IMAGE; fi
 
       - name: Set image name
         run: echo "IMAGE_NAME=dev-go-npm-grpc" >> $GITHUB_ENV
@@ -70,6 +71,6 @@ jobs:
           IMAGE=ghcr.io/${{ github.repository }}/$IMAGE_NAME:$TAG
           cd devcontainers/go-grpc
           docker build --target dev-go-npm-grpc -t $IMAGE .
-          docker push $IMAGE
+          if [[ $GITHUB_EVENT_NAME == push ]]; then docker push $IMAGE; fi
 
  

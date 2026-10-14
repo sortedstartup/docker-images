@@ -1,5 +1,5 @@
 # Start with the official Airflow image
-FROM apache/airflow:3.3.0
+FROM apache/airflow:3.3.2
 
 # Switch to root to install system dependencies
 USER root
@@ -19,7 +19,7 @@ RUN apt-get update && \
 # ARG TARGETARCH is automatically populated by Docker Buildx (e.g., "amd64" or "arm64")
 ARG TARGETARCH
 # Set your desired Go version here
-ARG GO_VERSION=1.26.3
+ARG GO_VERSION=1.27.2
 
 # Dynamically download the correct Go binary based on the target architecture
 RUN echo "Building for architecture: ${TARGETARCH}" && \
