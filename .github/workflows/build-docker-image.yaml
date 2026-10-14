@@ -55,28 +55,72 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Android Docker image
+        id: build_android
+        continue-on-error: true
         run: |
           TAG=${{ env.tag || env.commit_hash }}
           IMAGE=ghcr.io/${{ github.repository }}/$IMAGE_NAME:$TAG
           cd devcontainers/go-grpc
           docker build -t $IMAGE .
+
+      - name: Test Android Docker image
+        id: test_android
+        if: steps.build_android.outcome == 'success'
+        continue-on-error: true
+        run: |
+          TAG=${{ env.tag || env.commit_hash }}
+          IMAGE=ghcr.io/${{ github.repository }}/dev-go-npm-grpc-java-android:$TAG
           docker run --rm \
             --volume "$GITHUB_WORKSPACE/devcontainers/go-grpc/test-image.sh:/tmp/test-image.sh:ro" \
             "$IMAGE" bash /tmp/test-image.sh android
-          if [[ $GITHUB_EVENT_NAME == push ]]; then docker push $IMAGE; fi
 
       - name: Set image name
         run: echo "IMAGE_NAME=dev-go-npm-grpc" >> $GITHUB_ENV
 
       - name: Build core Docker image
+        id: build_core
+        continue-on-error: true
         run: |
           TAG=${{ env.tag || env.commit_hash }}
           IMAGE=ghcr.io/${{ github.repository }}/$IMAGE_NAME:$TAG
           cd devcontainers/go-grpc
           docker build --target dev-go-npm-grpc -t $IMAGE .
+
+      - name: Test core Docker image
+        id: test_core
+        if: steps.build_core.outcome == 'success'
+        continue-on-error: true
+        run: |
+          TAG=${{ env.tag || env.commit_hash }}
+          IMAGE=ghcr.io/${{ github.repository }}/dev-go-npm-grpc:$TAG
           docker run --rm \
             --volume "$GITHUB_WORKSPACE/devcontainers/go-grpc/test-image.sh:/tmp/test-image.sh:ro" \
             "$IMAGE" bash /tmp/test-image.sh core
-          if [[ $GITHUB_EVENT_NAME == push ]]; then docker push $IMAGE; fi
+
+      - name: Push tested Docker images
+        if: >-
+          github.event_name == 'push' &&
+          steps.build_android.outcome == 'success' &&
+          steps.test_android.outcome == 'success' &&
+          steps.build_core.outcome == 'success' &&
+          steps.test_core.outcome == 'success'
+        run: |
+          TAG=${{ env.tag || env.commit_hash }}
+          docker push ghcr.io/${{ github.repository }}/dev-go-npm-grpc-java-android:$TAG
+          docker push ghcr.io/${{ github.repository }}/dev-go-npm-grpc:$TAG
+
+      - name: Fail if any image build or test failed
+        if: always()
+        env:
+          BUILD_ANDROID_OUTCOME: ${{ steps.build_android.outcome }}
+          TEST_ANDROID_OUTCOME: ${{ steps.test_android.outcome }}
+          BUILD_CORE_OUTCOME: ${{ steps.build_core.outcome }}
+          TEST_CORE_OUTCOME: ${{ steps.test_core.outcome }}
+        run: |
+          if [[ "$BUILD_ANDROID_OUTCOME" != success || "$TEST_ANDROID_OUTCOME" != success || \
+                "$BUILD_CORE_OUTCOME" != success || "$TEST_CORE_OUTCOME" != success ]]; then
+            echo "One or more Docker image builds or test suites failed."
+            exit 1
+          fi
 
  
